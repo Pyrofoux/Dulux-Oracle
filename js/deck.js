@@ -57,14 +57,18 @@ class Deck
             if(mouseButton === LEFT) // Left click: draw a new card
             {
                 let card = this.index2card(this.lastIndex, this.x, this.y)
-                cards.push(card);
+                playmat.add(card)
                 this.lastIndex++;
-                //card.rollover = true;
-                // card.dragging = true;
+
+                
+                // Make sure the card is dragged when it appears (cleaner way to do this?)
+                card.rollover = true;
+                //card.dragging = true;
+                card.pressed();
             }
             else // reshuffle the whole deck
             {
-                cards = [];
+                playmat.removeAll();
                 this.lastIndex = 0;
                 this.shuffle();
             }
@@ -75,7 +79,7 @@ class Deck
     index2card(index, x = 0, y = 0)
     {
         let data = this.shuffled_colors[index]
-        let card = new Card(x, y, index, data[1], data[0])
+        let card = new Card(x, y, null, data[1], data[0])
         return card;
     }
 
@@ -83,11 +87,4 @@ class Deck
     {
         this.shuffled_colors = shuffle(dulux_colors);
     }
-
-    remove(index)
-    {
-        cards[index] = null;
-    }
-
-
 }

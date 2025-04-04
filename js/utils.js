@@ -13,3 +13,17 @@ function shuffle(array) {
         array[randomIndex], array[currentIndex]];
     }
   }
+
+function clamp(value, min, max)
+{
+    return Math.min(Math.max(value, min), max);
+};
+
+function easeInSine(x) {
+  return 1 - Math.cos((x * Math.PI) / 2);
+}
+
+function angleBetween(start_x, start_y, end_x, end_y)
+{
+  return Math.atan2(end_y-start_y, end_x-start_x) / TWO_PI*360;
+}

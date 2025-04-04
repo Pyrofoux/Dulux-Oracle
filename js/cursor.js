@@ -11,10 +11,9 @@ class CursorManager
     updateEvent()
     {
         let highest_card;
-        let all_cards = [deck, ...cards]
+        let all_cards = [deck, ...playmat.cards]
         for(let card of all_cards)
         {
-            if(card == null) continue;
             // reset the card cursor status
             card.rollover = false;
 

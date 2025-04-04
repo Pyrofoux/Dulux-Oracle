@@ -1,7 +1,7 @@
 
-let curs = new CursorManager()
-let deck = new Deck(100,100);
-let cards = [];
+let curs    = new CursorManager()
+let deck    = new Deck(100,100);
+let playmat = new Playmat();
 
 
 function preload() {
@@ -14,6 +14,7 @@ function preload() {
 function setup() {
   document.oncontextmenu = function() { return false; }
 
+  angleMode(DEGREES);
   createCanvas(windowWidth, windowHeight);
   deck.shuffle();
 
@@ -29,42 +30,41 @@ function draw() {
 
 
   deck.show();
-  for(let card of cards)
-  {
-    if(card == null) continue;
-    card.update();
-    card.show();
-  }
-
+  playmat.show();
   curs.updateIcon()
-
-  
 }
 
 function mousePressed() {
   let clickedCard = false;
-
+  let must_be_in_front = null;
   curs.mousedown = true;
-  for(let card of cards)
+  for(let card_index in playmat.cards)
     {
+      let card = playmat.cards[card_index];
       if(card == null) continue;
-      card.pressed();
+      let is_pressed = card.pressed();
+      if(is_pressed)
+      {
+        must_be_in_front = card_index;
+      }
     }
     
     deck.pressed();
     
+    if(must_be_in_front != null && must_be_in_front != playmat.cards.length-1) // If the card that is pressed is not already the one at front (i.e. last one in the array)
+    {
+      playmat.bringCardToFront(must_be_in_front);
+    }
 }
 
 function mouseReleased() {
   curs.mousedown = false;
-  for(let card of cards)
+  for(let card of playmat.cards)
     {
       if(card == null) continue;
       card.released();
     }
 }
-
-
 
 
 function drawCheckerBoard()
