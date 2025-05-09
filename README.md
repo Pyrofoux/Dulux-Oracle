@@ -6,7 +6,11 @@
 # How to use
 
 - Open the Oracle web page [here](https://pyrofoux.github.io/Dulux-Oracle/)
-- Click on the deck draw a card
-- Move the card around by dragging it
-- Right click on a card to remove it
-- Right click on all the deck to remove all cards and shuffle the deck
+- Copy and paste the URL to save or share the current spread
+
+Controls:
+- Click and drag on the deck to draw a card
+- Move a card around by dragging it
+- Click o na card to flip it
+- Right click on a card to discard it
+- Right click on all the deck to discard all cards and shuffle the deck

@@ -6,6 +6,8 @@ class Draggable {
   
       this.dragging = false; // Is the object being dragged?
       this.rollover = false; // Is the mouse over the ellipse? Managed by the CursorManager
+      this.interactable = true; // Can the object be interacted with? read by CursorManager
+      this.animating    = false; // Is the object being animated? used to recalculate position even if not interacted 
   
   
       this.x = x;
@@ -17,18 +19,34 @@ class Draggable {
       this.target_y = y;
 
       this.elapsedDragged = 0;
+
+
     }
 
     update() {
 
       // Adjust location if being dragged
-      if (this.dragging) {
-
-
+      if (this.dragging)
+      {
         this.target_x = mouseX + this.offsetX;
         this.target_y = mouseY + this.offsetY;
+        curs.setIcon("move") // Change icon
+      }
+      else
+      {
+        // Change icon
+        if(this.rollover && curs.icon != "move")
+        {
+          curs.setIcon("grab")
+        }
+        // else if(curs.icon != "move" && curs.icon != "grab")
+        // {
+        //   //curs.setIcon("default")
+        // }
+      }
 
-        //let new_x = mouseX + this.offsetX,  new_y = mouseY + this.offsetY;
+      if(this.animating || this.dragging)
+      {
         this. delta_x = this.target_x-this.x
         this.delta_y = this.target_y-this.y;
         if(this.delta_x != 0 || this.delta_y != 0)
@@ -42,34 +60,19 @@ class Draggable {
           // Make it reach when it's close enough
           if(Math.abs(this.delta_x) < 1) this.x = this.target_x;
           if(Math.abs(this.delta_y) < 1) this.y = this.target_y;
-
         }
-
-        // this.x = new_x;
-        // this.y = new_y;
-
-        // test: terrible
-        // this.tilt_angle = -Math.atan2(new_y - this.y, new_x - this.x) * 180 / Math.PI;
-        // this.x += clamp(new_x - this.x, -50, 50);
-        // this.y += clamp(new_y - this.y, -50, 50);
-        curs.setIcon("move") // Change icon
-
-  
-      }
-      else
-      {
-        // Change icon
-        if(this.rollover && curs.icon != "move")
+        else
         {
-          curs.setIcon("grab")
+          this.animating = false;
+          if(this.onDoneAnimating)
+          {
+            this.onDoneAnimating();
+          }
         }
-        else if(curs.icon != "move" && curs.icon != "grab")
-        {
-          curs.setIcon("default")
-        }
+
+
+
       }
-      
-  
     }
   
     show() {
@@ -87,8 +90,8 @@ class Draggable {
     }
   
     pressed() {
-      // Did I click on the rectangle?
-      if (this.rollover) {
+      // Did I click on the rectangle with the left button?
+      if (this.rollover && mouseButton == LEFT) { // RECENT CHANGE: check here if something broke
         this.dragging = true;
         // If so, keep track of relative location of click to corner of rectangle
         this.offsetX = this.x - mouseX;

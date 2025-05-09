@@ -4,11 +4,15 @@ let deck    = new Deck(100,100);
 let playmat = new Playmat();
 
 
+let HelveticaNeue, card_back, logo, sounds;
 function preload() {
-  // Load a custom font before the sketch starts
+  // Load custom font, images and sounds before the sketch starts
   HelveticaNeue = loadFont('font/HelveticaNeueTLPro-MD.ttf');
   card_back     = loadImage('img/card_back.png');
   logo          = loadImage("img/dulux-logo.png");
+  sounds = ["shuffle", "deal", "discard","flip"];
+  sounds.forEach(name => {sounds[name] = loadSound(`sound/${name}.wav`)});
+
 }
 
 function setup() {
@@ -17,6 +21,8 @@ function setup() {
   angleMode(DEGREES);
   createCanvas(windowWidth, windowHeight);
   deck.shuffle();
+  playmat.addDeck(deck)
+  loadShareUrl(document.location);
 
 }
 
@@ -29,7 +35,6 @@ function draw() {
   curs.updateEvent();
 
 
-  deck.show();
   playmat.show();
   curs.updateIcon()
 }
@@ -49,7 +54,7 @@ function mousePressed() {
       }
     }
     
-    deck.pressed();
+    playmat.deck.pressed();
     
     if(must_be_in_front != null && must_be_in_front != playmat.cards.length-1) // If the card that is pressed is not already the one at front (i.e. last one in the array)
     {
@@ -64,6 +69,42 @@ function mouseReleased() {
       if(card == null) continue;
       card.released();
     }
+}
+
+
+function getShareUrl()
+{
+  let here = new URL(document.location);
+  let serialized_playmat = playmat.serialize()
+  
+    here.searchParams.delete("c"); // delete to avoid adding it twice
+  if(serialized_playmat != "")  // TODO: leaves an ugly c= empty, but will not update otherwise...
+  {
+    here.searchParams.append("c", serialized_playmat)
+  }
+  return here.href;
+}
+
+function loadShareUrl(url)
+{
+  let here = new URL(url);
+  let serialized_playmat = here.searchParams.get("c");
+  // console.log(serialized_playmat);
+  if(serialized_playmat) playmat.unserialize(serialized_playmat);
+}
+
+function updateCurrentUrl()
+{
+  let updated_url = getShareUrl();
+  try
+  {
+    window.history.pushState({ path: updated_url }, '', updated_url);
+  }
+  catch(e)
+  {
+    console.log(e);
+  }
+  
 }
 
 

@@ -18,7 +18,7 @@ class CursorManager
             card.rollover = false;
 
             // Is mouse over object
-            if (mouseX > card.x && mouseX < card.x + card.w && mouseY > card.y && mouseY < card.y + card.h)
+            if (card.interactable && mouseX > card.x && mouseX < card.x + card.w && mouseY > card.y && mouseY < card.y + card.h)
             {
                 highest_card = card; //might also be the deck
             }

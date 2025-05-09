@@ -1,21 +1,48 @@
 class Card extends Draggable
 {
-    constructor(x, y, index, hex, name)
+    constructor(x, y, z_index, hex, name, deck_index, isFlipped = true)
     {
         // x, y, w, h
         super(x, y, param.cardW, param.cardW*param.cardWHratio);
-        this.index = index;
+        this.z_index = z_index;
         this.hex = hex;
         this.name = name;
-        this.isFlipped = true;
+        this.deck_index = deck_index;
+        this.isFlipped = isFlipped;
         this.isLight = Card.isLight(hex);
         this.angle = 0;
     }
 
+    static serialize_separator = "_";
+
+    serialize()
+    {
+        // x, y, isFlipped, deck_index
+        // color => index in deck?
+        return [`${this.deck_index}`,`${Math.floor(this.x)}`,`${Math.floor(this.y)}`,`${this.isFlipped ? 1 : 0}`].join(Card.serialize_separator)
+    }
+
+    static unserialize(serialized, z_index)
+    {
+        try
+        {
+            let blocks = serialized.split(Card.serialize_separator);
+            let deck_index = parseInt(blocks[0]), x = parseInt(blocks[1]), y = parseInt(blocks[2]), isFlipped = blocks[3] == 1;
+            let color_data = dulux_colors[deck_index];
+            let hex = color_data[1], name = color_data[0];
+            // console.log(x,y,z_index, hex, name, deck_index, isFlipped)
+            // console.log(blocks)
+            return new Card(x, y, z_index, hex, name, deck_index, isFlipped);
+        }
+        catch(e)
+        {
+            console.log("Parsing error", e);
+        }
+    }
 
 
     show() {
-
+        push()
         
 
         translate(this.x, this.y);
@@ -25,6 +52,7 @@ class Card extends Draggable
             
             let shadow_vertical_delta = this.h*param.draggingShadowHeight;
 
+            strokeWeight(0);
             translate(this.w/2, this.h/2);
 
             // tilting the card
@@ -33,7 +61,7 @@ class Card extends Draggable
             target_angle= Math.sign(target_angle) * magnitude;
 
             let distance_to_target = Math.round(Math.abs(this.delta_x) + Math.abs(this.delta_y)); // taxicab distance - if close enough, make it rotate back to vertical
-            if(distance_to_target <= 40) target_angle = 0;
+            if(distance_to_target <= 40) target_angle = 0; // MAGIC NUMBER
 
 
 
@@ -46,7 +74,7 @@ class Card extends Draggable
             translate(-this.w/2, -this.h/2);
 
             //drawing a shadow
-            fill(...param.cardShadowColor); // MAGIC NUMBER
+            fill(...param.cardShadowColor); 
             rect(0, this.h/2 + shadow_vertical_delta, this.w, this.h/2, 5, 10, 5, 10);
         }
         
@@ -105,9 +133,16 @@ class Card extends Draggable
             text(this.name,this.w- param.cardW*0.9 -10, 30, param.cardW*0.9);
         }
         // debug
-        //text(Math.round(Math.abs(this.delta_x) + Math.abs(this.delta_y)), 0 ,-10);
+        //text(Math.round("debug text", 0 ,-10);
         translate(-this.x,-this.y);
+        pop()
 
+    }
+
+    flip()
+    {
+        this.isFlipped = !this.isFlipped;
+        sounds["flip"].play();
     }
 
     pressed() // returns if it was pressed
@@ -118,7 +153,7 @@ class Card extends Draggable
         {
             if(mouseButton == RIGHT) // remove that card from the board
             {
-                playmat.remove(this.index);
+                this.discardAnimation();
             }
         }
 
@@ -131,10 +166,33 @@ class Card extends Draggable
         super.released();
         if (mouseButton == LEFT && this.rollover && this.elapsedDragged < 1)
         {
-            this.isFlipped = !this.isFlipped;
+            this.flip();
         }
-        
+
+        updateCurrentUrl();
     }
+
+    discardAnimation(play_sound = true) // animation to put card back in deck
+    {
+        this.target_x = playmat.deck.x;
+        this.target_y = playmat.deck.y;
+        this.isFlipped = true;
+        this.animating = true;
+        this.interactable = false;
+        this.onDoneAnimating = () => // When done...
+        {
+            playmat.remove(this.z_index); //Remove card from playmat
+            playmat.deck.reinsert(this.deck_index);// and put it back in the deck, at a random index
+
+            updateCurrentUrl(); // TODO: if done in bulk, only do the last one
+        }
+
+        if(play_sound)
+        {
+            sounds["discard"].play();
+        }
+    }
+
 
     static isLight(hex) // #abcdef
     {
